@@ -1,6 +1,7 @@
 package com.looqbox.challenge.controller;
 
 import com.looqbox.challenge.model.PokemonResponse;
+import com.looqbox.challenge.model.PokemonWithHighlightResponse;
 import com.looqbox.challenge.service.PokemonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,12 @@ public class PokemonController {
     public ResponseEntity<PokemonResponse> getPokemons(@RequestParam(required = false) String query,
                                                        @RequestParam(required = false, defaultValue = "ALPHABETICAL") SortType sort) {
         return ResponseEntity.ok(pokemonService.getPokemons(query, sort));
+    }
+
+    @GetMapping("/highlight")
+    public ResponseEntity<PokemonWithHighlightResponse> getPokemonsWithHighlight(@RequestParam(required = false) String query,
+                                                                                 @RequestParam(required = false, defaultValue = "ALPHABETICAL") SortType sort) {
+        return ResponseEntity.ok(pokemonService.getPokemonsWithHighlight(query, sort));
     }
 
 }
