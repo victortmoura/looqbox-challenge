@@ -1,14 +1,14 @@
 package com.looqbox.challenge.service;
 
 import com.looqbox.challenge.client.PokemonClient;
-import com.looqbox.challenge.model.Pokemon;
-import com.looqbox.challenge.model.PokemonResponse;
-import com.looqbox.challenge.model.PokemonWithHighlightResponse;
+import com.looqbox.challenge.dto.PokemonDTO;
+import com.looqbox.challenge.dto.PokemonResultsDTO;
+import com.looqbox.challenge.dto.PokemonWithHighlightDTO;
 import com.looqbox.challenge.sort.MergeSort;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.looqbox.challenge.sort.MergeSort.SortType;
 
@@ -23,61 +23,59 @@ public class PokemonService {
         this.mergeSort = mergeSort;
     }
 
-    public PokemonResponse getPokemons(String query, SortType sort) {
-        List<Pokemon> pokemons = pokemonClient.getPokemonsFromApi();
+    public PokemonResultsDTO getPokemons(String query, SortType sort) {
+        List<String> pokemons = pokemonClient.getPokemonsFromApi();
 
-        if (query != null && !query.isEmpty()) {
-            pokemons = filterPokemonsByQuery(pokemons, query);
-        }
+        pokemons = filterPokemons(query, pokemons);
+        pokemons = sortPokemons(sort, pokemons);
 
-        List<String> pokemonNames = pokemons.stream().map(Pokemon::getName).toList();
-        List<String> sortedPokemons = mergeSort.sort(pokemonNames, sort != null ? sort : SortType.ALPHABETICAL);
-
-        return new PokemonResponse(sortedPokemons);
+        return new PokemonResultsDTO(pokemons);
     }
 
-    public PokemonWithHighlightResponse getPokemonsWithHighlight(String query, SortType sort) {
-        List<Pokemon> pokemons = pokemonClient.getPokemonsFromApi();
+    public PokemonWithHighlightDTO getPokemonsWithHighlight(String query, SortType sort) {
+        List<String> pokemons = pokemonClient.getPokemonsFromApi();
 
-        if (query != null && !query.isEmpty()) {
-            pokemons = filterPokemonsByQuery(pokemons, query);
-        }
+        pokemons = filterPokemons(query, pokemons);
+        pokemons = sortPokemons(sort, pokemons);
 
-        List<String> result = pokemons.stream().map(Pokemon::getName).toList();
-        List<String> sortedPokemons = mergeSort.sort(result, sort != null ? sort : SortType.ALPHABETICAL);
-
-        return highlightPokemonNames(sortedPokemons, query);
+        return highlightPokemonNames(pokemons, query);
     }
 
-    private List<Pokemon> filterPokemonsByQuery(List<Pokemon> pokemons, String query) {
-        return pokemons.stream()
-                .filter(pokemon -> pokemon.getName().toLowerCase().contains(query.toLowerCase()))
-                .collect(Collectors.toList());
-    }
-
-    public PokemonWithHighlightResponse highlightPokemonNames(List<String> pokemonNames, String query) {
-        if (query == null || query.isEmpty()) {
-            List<Pokemon> result = pokemonNames.stream()
-                    .map(Pokemon::new)
+    private List<String> filterPokemons(String query, List<String> pokemons) {
+        if (StringUtils.isNotEmpty(query)) {
+            pokemons = pokemons.stream()
+                    .filter(name -> name.toLowerCase().contains(query.toLowerCase()))
                     .toList();
-            return new PokemonWithHighlightResponse(result);
+        }
+        return pokemons;
+    }
+
+    private List<String> sortPokemons(SortType sort, List<String> pokemons) {
+        return mergeSort.sort(pokemons, sort != null ? sort : SortType.ALPHABETICAL);
+    }
+
+    private PokemonWithHighlightDTO highlightPokemonNames(List<String> pokemonNames, String query) {
+        if (StringUtils.isEmpty(query)) {
+            List<PokemonDTO> result = pokemonNames.stream()
+                    .map(PokemonDTO::new)
+                    .toList();
+            return new PokemonWithHighlightDTO(result);
         }
 
-        List<Pokemon> result = pokemonNames.stream()
+        List<PokemonDTO> result = pokemonNames.stream()
                 .map(name -> {
                     String lowerCaseName = name.toLowerCase();
                     String lowerCaseQuery = query.toLowerCase();
 
                     if (lowerCaseName.contains(lowerCaseQuery)) {
                         String highlighted = name.replaceFirst("(?i)" + query, "<pre>" + query + "</pre>");
-                        return new Pokemon(name, highlighted);
+                        return new PokemonDTO(name, highlighted);
                     } else {
-                        return new Pokemon(name, query);
+                        return new PokemonDTO(name, query);
                     }
                 })
                 .toList();
 
-        return new PokemonWithHighlightResponse(result);
+        return new PokemonWithHighlightDTO(result);
     }
-
 }

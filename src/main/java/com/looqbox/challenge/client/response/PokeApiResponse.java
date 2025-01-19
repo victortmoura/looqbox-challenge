@@ -1,4 +1,4 @@
-package com.looqbox.challenge.model;
+package com.looqbox.challenge.client.response;
 
 import java.util.LinkedHashMap;
 import java.util.List;

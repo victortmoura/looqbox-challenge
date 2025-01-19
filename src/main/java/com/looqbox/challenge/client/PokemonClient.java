@@ -1,14 +1,12 @@
 package com.looqbox.challenge.client;
 
-import com.looqbox.challenge.model.PokeApiResponse;
-import com.looqbox.challenge.model.Pokemon;
+import com.looqbox.challenge.client.response.PokeApiResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class PokemonClient {
@@ -22,7 +20,7 @@ public class PokemonClient {
         this.restTemplate = restTemplate;
     }
 
-    public List<Pokemon> getPokemonsFromApi() {
+    public List<String> getPokemonsFromApi() {
         PokeApiResponse pokeApiResponse = restTemplate.exchange(
                         apiUrl.concat("/pokemon"),
                         HttpMethod.GET,
@@ -33,14 +31,14 @@ public class PokemonClient {
         return parsePokemonResponse(pokeApiResponse);
     }
 
-    private List<Pokemon> parsePokemonResponse(PokeApiResponse pokeApiResponse) {
+    private List<String> parsePokemonResponse(PokeApiResponse pokeApiResponse) {
         if (pokeApiResponse == null || pokeApiResponse.getResults() == null) {
             return List.of();
         }
 
         return pokeApiResponse.getResults()
                 .stream()
-                .map(pokemon -> new Pokemon(pokemon.get("name")))
-                .collect(Collectors.toList());
+                .map(pokemon -> pokemon.get("name"))
+                .toList();
     }
 }

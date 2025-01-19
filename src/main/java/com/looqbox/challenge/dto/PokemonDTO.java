@@ -1,16 +1,16 @@
-package com.looqbox.challenge.model;
+package com.looqbox.challenge.dto;
 
-public class Pokemon {
+public class PokemonDTO {
 
     private String name;
     private String highlightedName;
 
-    public Pokemon(String name, String highlightedName) {
+    public PokemonDTO(String name, String highlightedName) {
         this.name = name;
         this.highlightedName = highlightedName;
     }
 
-    public Pokemon(String name) {
+    public PokemonDTO(String name) {
         this.name = name;
     }
 
